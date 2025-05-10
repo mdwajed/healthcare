@@ -1,9 +1,86 @@
-import { UserStatus } from "@prisma/client";
+import { Prisma, UserStatus } from "@prisma/client";
 import { prisma } from "../../../Shared/prisma";
+import { IPaginationOptions } from "../../interfaces/pagination.interface";
+import { calculatePagination } from "../../../helper/paginationHelper";
+import { doctorSearchableFields } from "./doctor.constant";
+import { IDoctorFilterRequest, IDoctorUpdate } from "./doctor.interface";
 
-const getAllDoctor = async () => {
-  const doctors = await prisma.doctor.findMany();
-  return doctors;
+const getAllDoctor = async (
+  params: IDoctorFilterRequest,
+  options: IPaginationOptions
+) => {
+  const { page, limit, skip } = calculatePagination(options);
+  const andCondition: Prisma.DoctorWhereInput[] = [];
+  const { searchTerm, specialities, ...filterData } = params;
+  console.log(specialities);
+  if (params.searchTerm) {
+    andCondition.push({
+      OR: doctorSearchableFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+  if (specialities && specialities.length > 0) {
+    andCondition.push({
+      doctorSpecialties: {
+        some: {
+          specialities: {
+            title: {
+              contains: specialities,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+    });
+  }
+  if (Object.keys(filterData).length > 0) {
+    andCondition.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: (filterData as any)[key],
+        },
+      })),
+    });
+  }
+  andCondition.push({
+    isDeleted: false,
+  });
+  const whereCondition: Prisma.DoctorWhereInput = { AND: andCondition };
+  const doctors = await prisma.doctor.findMany({
+    where: whereCondition,
+    skip,
+    take: limit,
+    orderBy:
+      options.sortBy && options.sortOrder
+        ? { [options.sortBy]: options.sortOrder }
+        : {
+            createdAt: "desc",
+          },
+    include: {
+      doctorSpecialties: {
+        include: {
+          specialities: true,
+        },
+      },
+    },
+  });
+  const total = await prisma.doctor.count({
+    where: whereCondition,
+  });
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+    },
+    data: {
+      doctors,
+    },
+  };
 };
 
 const getDoctorById = async (id: string) => {
@@ -55,9 +132,9 @@ const doctorSoftDelete = async (id: string) => {
   });
   return result;
 };
-const doctorUpdate = async (id: string, payload: any) => {
+const doctorUpdate = async (id: string, payload: IDoctorUpdate) => {
   const { specialities, ...doctorData } = payload;
-  // console.log("Spec:", specialities, "ddoctordata:", doctorData);
+
   const doctorInfo = await prisma.doctor.findUniqueOrThrow({
     where: {
       id,

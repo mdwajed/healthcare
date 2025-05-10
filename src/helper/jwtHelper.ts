@@ -1,6 +1,7 @@
 import jwt, { Secret, SignOptions } from "jsonwebtoken";
 import { StringValue } from "ms";
 interface JwtPayload {
+  id: string;
   email: string;
   role: string;
 }

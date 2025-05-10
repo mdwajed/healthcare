@@ -46,12 +46,12 @@ const changePassword = catchAsync(
 );
 const forgotPasssword = catchAsync(
   async (req: Request & { user?: any }, res: Response) => {
-    await AuthServices.forgotPassword(req.body);
+    const result = await AuthServices.forgotPassword(req.body);
     responseData(res, {
       statusCode: StatusCodes.OK,
       success: true,
       message: "Check email",
-      data: null,
+      data: result,
     });
   }
 );

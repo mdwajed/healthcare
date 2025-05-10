@@ -1,8 +1,6 @@
-import express, { NextFunction, Request, Response } from "express";
+import express from "express";
 import auth from "../../middlewares/auth";
 import { UserRole } from "@prisma/client";
-import { fileUploader } from "../../../helper/fileUploader";
-import { userValidation } from "./user.validation";
 import { doctorController } from "./doctor.controller";
 
 const router = express.Router();

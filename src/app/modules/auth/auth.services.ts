@@ -24,6 +24,7 @@ const loggedInUser = async (payload: { email: string; password: string }) => {
   }
   const accessToken = jwtHelper.generateToken(
     {
+      id: userData.id,
       email: userData.email,
       role: userData.role,
     },
@@ -32,6 +33,7 @@ const loggedInUser = async (payload: { email: string; password: string }) => {
   );
   const refreshToken = jwtHelper.generateToken(
     {
+      id: userData.id,
       email: userData.email,
       role: userData.role,
     },
@@ -51,7 +53,7 @@ const refreshToken = async (token: string) => {
       token,
       config.jwt.refresh_token_secret as Secret
     );
-    console.log("decodedData: ", decodedData);
+    // console.log("decodedData: ", decodedData);
   } catch (error) {
     throw new Error("You are not authorize");
   }
@@ -64,6 +66,7 @@ const refreshToken = async (token: string) => {
   });
   const accessToken = jwtHelper.generateToken(
     {
+      id: userData.id,
       email: userData.email,
       role: userData.role,
     },
@@ -112,6 +115,7 @@ const forgotPassword = async (payload: { email: string }) => {
   });
   const resetPassToken = jwtHelper.generateToken(
     {
+      id: userData.id,
       email: userData.email,
       role: userData.role,
     },

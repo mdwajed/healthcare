@@ -18,7 +18,6 @@ const createAdmin = async (req: CreateAdminRequest) => {
   if (file) {
     const fileToUpload = await fileUploader.uploadToCloudinary(file);
     req.body.admin.profilePicture = fileToUpload?.secure_url;
-    console.log("PROPICTURE", req.body);
   }
   const hashedPassword = await bcrypt.hash(req.body.password, 12);
   const userData = {
@@ -70,7 +69,6 @@ const createPatient = async (req: CreatePatientRequest) => {
   if (file) {
     const fileToUpload = await fileUploader.uploadToCloudinary(file);
     req.body.patient.profilePicture = fileToUpload?.secure_url;
-    console.log("PROPICTURE", req.body);
   }
   const hashedPassword = await bcrypt.hash(req.body.password, 12);
   const userData = {

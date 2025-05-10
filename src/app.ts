@@ -14,6 +14,6 @@ app.get("/", (_req: Request, res: Response) => {
   res.send({ Message: "Welcome to Healthcare Service" });
 });
 app.use("/api/v1", router);
-app.use(notFound);
 app.use(globalError);
+app.use(notFound);
 export default app;

@@ -3,9 +3,14 @@ import catchAsync from "../../../Shared/catchAsync";
 import responseData from "../../../Shared/responseData";
 import { StatusCodes } from "http-status-codes";
 import { doctorService } from "./doctor.service";
+import pick from "../../../Shared/pick";
+import { doctorFilterableFields } from "./doctor.constant";
 
 const getAllDoctor = catchAsync(async (req: Request, res: Response) => {
-  const result = await doctorService.getAllDoctor();
+  const filters = pick(req.query, doctorFilterableFields);
+  const options = pick(req.query, ["limit", "page", "sortBy", "sortOrder"]);
+  console.log(options);
+  const result = await doctorService.getAllDoctor(filters, options);
   responseData(res, {
     statusCode: StatusCodes.OK,
     success: true,
@@ -18,7 +23,7 @@ const getDoctorById = catchAsync(async (req: Request, res: Response) => {
   responseData(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "get doctor data successfully",
+    message: "Get doctor data successfully",
     data: result,
   });
 });
