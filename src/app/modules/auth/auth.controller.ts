@@ -44,17 +44,15 @@ const changePassword = catchAsync(
     });
   }
 );
-const forgotPasssword = catchAsync(
-  async (req: Request & { user?: any }, res: Response) => {
-    const result = await AuthServices.forgotPassword(req.body);
-    responseData(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      message: "Check email",
-      data: result,
-    });
-  }
-);
+const forgotPasssword = catchAsync(async (req: Request, res: Response) => {
+  const result = await AuthServices.forgotPassword(req.body);
+  responseData(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Check email",
+    data: result,
+  });
+});
 const resetPasssword = catchAsync(async (req: Request, res: Response) => {
   const token = req.headers.authorization || "";
   await AuthServices.resetPassword(token, req.body);
