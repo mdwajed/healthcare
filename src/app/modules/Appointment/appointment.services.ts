@@ -71,7 +71,9 @@ const createAppointment = async (user: IAuthUser, payload: any) => {
       "-" +
       today.getHours() +
       "-" +
-      today.getMinutes();
+      today.getMinutes() +
+      "-" +
+      today.getSeconds();
     await txn.payment.create({
       data: {
         appointmentId: appointmentData.id,
