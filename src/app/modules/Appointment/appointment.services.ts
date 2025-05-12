@@ -5,7 +5,7 @@ import { IAuthUser } from "../../interfaces/common";
 import { v4 as uuidv4 } from "uuid";
 import { IPaginationOptions } from "../../interfaces/pagination.interface";
 import { calculatePagination } from "../../../helper/paginationHelper";
-import { Prisma, UserRole } from "@prisma/client";
+import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
 const createAppointment = async (user: IAuthUser, payload: any) => {
   const patientData = await prisma.patient.findUniqueOrThrow({
     where: {
@@ -205,8 +205,39 @@ const getAllAppointment = async (filters: any, options: IPaginationOptions) => {
     },
   };
 };
+const changeAppointmentStatus = async (
+  id: string,
+  user: IAuthUser,
+  status: AppointmentStatus
+) => {
+  const appointmentData = await prisma.appointment.findUniqueOrThrow({
+    where: {
+      id,
+    },
+    include: {
+      doctor: true,
+    },
+  });
+  if (
+    user?.role === UserRole.DOCTOR &&
+    user.email !== appointmentData.doctor.email
+  ) {
+    throw new appError(StatusCodes.BAD_REQUEST, "Appointment is not yourself");
+  }
+  const result = await prisma.appointment.update({
+    where: {
+      id,
+    },
+    data: { status: "COMPLETED" },
+    include: {
+      doctor: true,
+    },
+  });
+  return result;
+};
 export const AppointmentService = {
   createAppointment,
   getMyAppointment,
   getAllAppointment,
+  changeAppointmentStatus,
 };
