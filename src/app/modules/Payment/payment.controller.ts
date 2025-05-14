@@ -22,6 +22,7 @@ const validatePayment = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
 export const PaymentController = {
   initiatePayment,
   validatePayment,

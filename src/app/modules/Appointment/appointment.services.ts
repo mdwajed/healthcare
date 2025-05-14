@@ -5,7 +5,12 @@ import { IAuthUser } from "../../interfaces/common";
 import { v4 as uuidv4 } from "uuid";
 import { IPaginationOptions } from "../../interfaces/pagination.interface";
 import { calculatePagination } from "../../../helper/paginationHelper";
-import { AppointmentStatus, Prisma, UserRole } from "@prisma/client";
+import {
+  AppointmentStatus,
+  PaymentStatus,
+  Prisma,
+  UserRole,
+} from "@prisma/client";
 const createAppointment = async (user: IAuthUser, payload: any) => {
   const patientData = await prisma.patient.findUniqueOrThrow({
     where: {
@@ -228,16 +233,54 @@ const changeAppointmentStatus = async (
     where: {
       id,
     },
-    data: { status: "COMPLETED" },
-    include: {
-      doctor: true,
-    },
+    data: { status: AppointmentStatus.CANCELLED },
   });
   return result;
+};
+const cancelUnpaidAppointment = async () => {
+  const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+  const unpaidAppointments = await prisma.appointment.findMany({
+    where: {
+      createdAt: {
+        lte: thirtyMinutesAgo,
+      },
+      paymentStatus: PaymentStatus.UNPAID,
+    },
+  });
+  const unpaidAppointmentIds = unpaidAppointments.map(
+    (appointment) => appointment.id
+  );
+  await prisma.$transaction(async (txn) => {
+    await txn.payment.deleteMany({
+      where: {
+        appointmentId: {
+          in: unpaidAppointmentIds,
+        },
+      },
+    });
+    await txn.appointment.deleteMany({
+      where: {
+        id: {
+          in: unpaidAppointmentIds,
+        },
+      },
+    });
+    for (const unpaidAppointment of unpaidAppointments)
+      await txn.doctorSchedules.updateMany({
+        where: {
+          doctorId: unpaidAppointment.doctorId,
+          scheduleId: unpaidAppointment.scheduleId,
+        },
+        data: {
+          isBooked: false,
+        },
+      });
+  });
 };
 export const AppointmentService = {
   createAppointment,
   getMyAppointment,
   getAllAppointment,
   changeAppointmentStatus,
+  cancelUnpaidAppointment,
 };
